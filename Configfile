@@ -1,0 +1,22 @@
+# I'm super paranoid about C++ code... :)
+LANGUAGES   += c++
+COMPILEOPTS += -Wall
+COMPILEOPTS += -Wextra
+COMPILEOPTS += -Werror
+COMPILEOPTS += -pedantic
+COMPILEOPTS += -std=c++0x
+
+# The test scripts use BASH
+LANGUAGES   += bash
+
+# Generates a C version number and verifies that it matches git
+GENERATE    += version.h
+
+# Converts a VCD file to a Chisel tester file
+BINARIES    += vcd2step
+COMPILEOPTS += `ppkg-config libvcd --cflags`
+LINKOPTS    += `ppkg-config libvcd --libs`
+COMPILEOPTS += `ppkg-config flo --cflags`
+LINKOPTS    += `ppkg-config flo --libs`
+LINKOPTS    += -lgmp -lgmpxx
+SOURCES     += main.c++
