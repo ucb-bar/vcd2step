@@ -80,7 +80,7 @@ int main(int argc, const char **argv)
 
             auto value_int = bits2int(value_bits);
 
-            fprintf(step, "poke %s %s\n",
+            fprintf(step, "wire_poke %s %s\n",
                     chisel_name.c_str(),
                     value_int.c_str()
                 );
