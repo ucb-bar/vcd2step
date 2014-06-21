@@ -64,6 +64,52 @@ int main(int argc, const char **argv)
         if (op->op() == libflo::opcode::IN)
             should_poke[vcd2chisel(op->d()->name())] = true;
 
+    /* We need to make sure to initialize all the registers on the
+     * first cycle.  Here we simply rely on the fact that Chisel
+     * always generates a MUX to initialize registers, so we just walk
+     * the graph to determine exactly what the initial value should
+     * be. */
+
+    /* This map is a bit odd: if we have the op "R = reg 1 U", then U
+     * is stored here. */
+    std::unordered_map<std::string, std::string> initial_reg_values;
+
+    /* Search through all possible initializer MUXen and store them in
+     * a lookup table. */
+    for (const auto& op: flo->operations()) {
+        if (op->op() != libflo::opcode::MUX)
+            continue;
+        if (strcmp(op->s()->name().c_str(), "reset") != 0)
+            continue;
+        if (op->t()->is_const() == false)
+            continue;
+
+        initial_reg_values[op->d()->name()] = op->t()->name();
+    }
+
+    /* Attempt to find the initializer for all REGs in the circuit. */
+    for (const auto& op: flo->operations()) {
+        if (op->op() != libflo::opcode::REG)
+            continue;
+
+        auto l = initial_reg_values.find(op->t()->name());
+        if (l == initial_reg_values.end()) {
+            fprintf(stderr, "Unable to infer register initializer for '%s'\n",
+                    op->d()->name().c_str());
+            continue;
+        }
+
+        auto chisel_name = vcd2chisel(op->d()->name());
+        fprintf(step, "wire_poke %s %s\n",
+                chisel_name.c_str(),
+                l->second.c_str()
+            );
+    }
+
+    /* The remainder of the circuit can be computed from just its
+     * inputs on every cycle.  Those can all be obtained from the VCD
+     * alone. */
+
     /* Read all the way through the VCD file, */
     while (vcd.has_more_cycles()) {
         vcd.step();
