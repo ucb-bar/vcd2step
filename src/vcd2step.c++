@@ -28,6 +28,10 @@
 #include <gmpxx.h>
 #include "version.h"
 
+typedef libflo::node node;
+typedef libflo::operation<node> operation;
+typedef libflo::flo<node, operation> flo;
+
 /* Name mangles a VCD name (with "::" or ":" as a seperator) into a
  * Chisel name (with "." as a seperator). */
 static const std::string vcd2chisel(const std::string& vcd_name);
@@ -56,7 +60,7 @@ int main(int argc, const char **argv)
 
     /* Open the two files that we were given. */
     libvcd::vcd vcd(argv[1]);
-    auto flo = libflo::flo<libflo::node, libflo::operation<libflo::node>>::parse(argv[2]);
+    auto flo = flo::parse(argv[2]);
     auto step = fopen(argv[3], "w");
 
     /* Build a map that contains the list of names that will be output
