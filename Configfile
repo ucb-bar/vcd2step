@@ -19,4 +19,4 @@ LINKOPTS    += `ppkg-config libvcd --libs`
 COMPILEOPTS += `ppkg-config flo --cflags`
 LINKOPTS    += `ppkg-config flo --libs`
 LINKOPTS    += -lgmp -lgmpxx
-SOURCES     += main.c++
+SOURCES     += vcd2step.c++

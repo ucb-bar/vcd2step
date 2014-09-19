@@ -34,6 +34,8 @@ static const std::string vcd2chisel(const std::string& vcd_name);
 
 /* Converts a binary-encoded string to a decimal-encoded string. */
 static const std::string bits2int(const std::string& value_bits);
+static const std::string bits2int(const std::string& value_bits,
+                                  size_t start, size_t end);
 
 int main(int argc, const char **argv)
 {
@@ -66,7 +68,7 @@ int main(int argc, const char **argv)
 
     /* Reset the circuit for 5 cycles, just like the Chisel test bench
      * does. */
-    fprintf(step, "reset 5\n");
+    fprintf(step, "reset 10\n");
 
     /* The remainder of the circuit can be computed from just its
      * inputs on every cycle.  Those can all be obtained from the VCD
@@ -86,12 +88,28 @@ int main(int argc, const char **argv)
 
             auto value_bits = vcd.long_name_to_bits(vcd_name);
 
+#if 0
+            fprintf(stderr, "%s: %s\n",
+                    chisel_name.c_str(),
+                    value_bits.c_str()
+                );
+#endif
+
             auto value_int = bits2int(value_bits);
 
             fprintf(step, "wire_poke %s %s\n",
                     chisel_name.c_str(),
                     value_int.c_str()
                 );
+
+            for (size_t offset = 0; offset < strlen(value_bits.c_str())-1; offset += 32) {
+                auto value_nint = bits2int(value_bits, offset, offset + 32);
+                fprintf(step, "wire_poke %s.MWE%lu %s\n",
+                        chisel_name.c_str(),
+                        offset / 32,
+                        value_nint.c_str()
+                    );
+            }
         }
 
         fprintf(step, "step 1\n");
@@ -117,6 +135,22 @@ const std::string vcd2chisel(const std::string& vcd_name)
 
     return buffer;
 }
+
+const std::string bits2int(const std::string& value_bits,
+                           size_t start, size_t end)
+{
+    if (value_bits.c_str()[0] != 'b') {
+        fprintf(stderr, "Non-binary string '%s'\n", value_bits.c_str());
+        abort();
+    }
+
+    mpz_class gmp(value_bits.c_str() + 1, 2);
+    mpz_class mask = gmp & ((1 << end) - 1);
+    mpz_class shift = mask >> start;
+
+    return shift.get_str(10);
+}
+
 
 const std::string bits2int(const std::string& value_bits)
 {
