@@ -20,3 +20,12 @@ COMPILEOPTS += `ppkg-config flo --cflags`
 LINKOPTS    += `ppkg-config flo --libs`
 LINKOPTS    += -lgmp -lgmpxx
 SOURCES     += vcd2step.c++
+
+# Converts a VCD file to a static Verilog harness
+BINARIES    += vcd2verilog
+COMPILEOPTS += `ppkg-config libvcd --cflags`
+LINKOPTS    += `ppkg-config libvcd --libs`
+COMPILEOPTS += `ppkg-config flo --cflags`
+LINKOPTS    += `ppkg-config flo --libs`
+LINKOPTS    += -lgmp -lgmpxx
+SOURCES     += vcd2verilog.c++
