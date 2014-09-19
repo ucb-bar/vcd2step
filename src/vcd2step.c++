@@ -108,7 +108,7 @@ int main(int argc, const char **argv)
 
             for (size_t offset = 0; offset < strlen(value_bits.c_str())-1; offset += 32) {
                 auto value_nint = bits2int(value_bits, offset, offset + 32);
-                fprintf(step, "wire_poke %s.MWE%lu %s\n",
+                fprintf(step, "wire_poke %s.MWE" SIZET_FORMAT " %s\n",
                         chisel_name.c_str(),
                         offset / 32,
                         value_nint.c_str()
