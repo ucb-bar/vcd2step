@@ -33,7 +33,41 @@
 
 typedef libflo::node node;
 typedef libflo::operation<node> operation;
-typedef libflo::flo<node, operation> flo;
+
+class flo: public libflo::flo<node, operation> {
+public:
+    flo(std::map<std::string, std::shared_ptr<node>>& nodes,
+        std::vector<std::shared_ptr<operation>>& ops)
+        : libflo::flo<node, operation>(nodes, ops)
+        {
+        }
+
+public:
+        const std::string class_name(void) const
+            {
+                for (const auto& node: nodes()) {
+                    std::string name = node->name();
+                    size_t index = name.find(":");
+                    if (index == std::string::npos)
+                        continue;
+
+                    return name.substr(0, index);
+                }
+
+                fprintf(stderr, "Could not determine class name\n");
+                abort();
+                return "";
+            }
+
+public:
+    static const std::shared_ptr<flo> parse(const std::string filename)
+        {
+            auto func = libflo::flo<node, operation>::create_node;
+            auto f = libflo::flo<node, operation>::parse_help<flo>(filename,
+                                                                   func);
+            return f;
+        }
+};
 
 class generic_signal {
 public:
